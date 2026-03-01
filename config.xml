@@ -1,0 +1,6 @@
+<app>
+    <datasetPath>data/dataset.csv</datasetPath>
+    <datasetBckPath>data/bck/</datasetBckPath>
+    <uploadPath>data/upload/</uploadPath>
+</app>
+
