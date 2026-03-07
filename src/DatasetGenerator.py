@@ -9,23 +9,10 @@ import csv
 DEPARTMENTS = ["Housekeeping", "Reception", "F&B"]
 SENTIMENTS = ["Positivo", "Negativo"]
 PROMPT = """
-Genera una lista di oggetti JSON con le seguenti chiavi:
-- ID (numerico)
-- Titolo (stringa)
-- Corpo (stringa)
-- Reparto ("Housekeeping", "Reception", "F&B")
-- Sentiment ("Positivo", "Negativo")
 
-Il contensto della generazione è un dataset per machine larning. Si tratta di un insieme di recensioni di un hotel. Ogni recensione deve essere attribuibile 
-a uno dei reparti sopra specificati e deve avere un sentiment positivo o negativo. Nella colonna "Reparto" e "Sentiment" specifica rispettivamente il reparto
-rigurdante la recensione e la polarità della stessa. Tali campi serviranno per valutare il modello di ML in fase di test.
-Genera un 40% di recensioni positive, un 40% di recensioni negative e un 10% di recensioni dubbie o incerte. Quest'ultima gruppo di recensioni può avere una 
-polarità del sentiment non del tutto chiara, un'attribuibilità a più reparti (con uno dominante) o essere completamente senza senso.
-Fai in modo che tutte le recensioni siano diverse e che il titolo contenga meno di 10 parole e il corpo meno di 50.
-Il numero di recensioni da generare è {n}
 """
 
-def saveReviewsCsv(datasetJson, datasetPath, datasetBckPath):
+def saveReviewsCsv(datasetJson, datasetPath):
     print("Salvataggio delle recensioni in formato CSV in corso...")
 
     # Sostituzione di ';' con ',' in modo da poter usare ';' come separatore per il CSV
@@ -67,12 +54,9 @@ def generateJsonReviewsByOpenAi():
         responseData = response.choices[0].message.content
         data = json.loads(responseData)
 
-        # Pulizia JSON TODO: C'è bisogna di questa cosa?
-        reviews = data if isinstance(data, list) else data.get('recensioni', data.get('data', list(data.values())[0]))
-
         print("{n} recensioni generate".format(n=n))
 
-        return reviews
+        return data
 
     except Exception as e:
         print(e)
@@ -82,7 +66,6 @@ def generateDataset(datasetPath, datasetBckPath):
 
     print (datasetPath)
     # Se il dataset non esiste viene creato
-    # TODO Capire se path messo così è corretto (da root) o se bisogna partire da qui
     if not os.path.exists(datasetPath):
         print("Nessun dataset di recensioni presente, si procede con la creazione.")
         datasetJson = generateJsonReviewsByOpenAi()
@@ -109,4 +92,4 @@ def generateDataset(datasetPath, datasetBckPath):
             else:
                 print("Scelta non valida, inserisci un valore tra [S,Y,N]")
 
-    saveReviewsCsv(datasetJson, datasetPath, datasetBckPath)
+    saveReviewsCsv(datasetJson, datasetPath)

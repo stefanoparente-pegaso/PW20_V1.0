@@ -1,0 +1,16 @@
+Genera un file CSV con i seguenti campi:
+- ID (numerico)
+- Titolo (stringa)
+- Corpo (stringa)
+- Reparto ("Housekeeping", "Reception", "F&B")
+- Sentiment ("Positivo", "Negativo")
+
+
+Il contesto della generazione è un dataset per machine learning. Si tratta di un insieme di recensioni di un hotel. Ogni recensione deve essere attribuibile
+a uno dei reparti sopra specificati e deve avere un sentiment positivo o negativo. Nella colonna "Reparto" e "Sentiment" specifica rispettivamente il reparto riguardante la recensione e la polarità della stessa. Tali campi serviranno per valutare il modello di ML in fase di test.
+In questo caso generami solo recensioni NEGATIVE distribuite equamente tra i 3 reparti.
+Fai in modo che tutte le recensioni siano diverse e che il titolo contenga meno di 10 parole e il corpo tra 40 e 80 parole (importate che siano almeno 40!).
+Il numero di recensioni da generare è 160. Il separatore deve essere il punto e virgola (;) e inserisci pure punteggiatura nel corpo. L'ID deve partire dal n° 161 (incluso)
+
+
+Voglio che mi generi un file da poter scaricare subito, non una lista.
