@@ -32,8 +32,7 @@ def saveReviewsCsv(datasetJson, datasetPath):
     print("Dataset salvato")
 
 def generateJsonReviewsByOpenAi():
-    print("os.environ:", os.environ.get("OPENAI_API_KEY"))
-    key = os.environ.get("OPENAI_API_KEY")
+    key = input("Inserisci una API Key OpenAI: ")
     if not key:
         raise RuntimeError("KEY OpenAI not defined")
     client = OpenAI(api_key=key)
@@ -64,7 +63,6 @@ def generateJsonReviewsByOpenAi():
 
 def generateDataset(datasetPath, datasetBckPath):
 
-    print (datasetPath)
     # Se il dataset non esiste viene creato
     if not os.path.exists(datasetPath):
         print("Nessun dataset di recensioni presente, si procede con la creazione.")
