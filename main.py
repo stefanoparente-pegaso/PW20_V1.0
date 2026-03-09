@@ -2,8 +2,9 @@ import pathlib
 from pathlib import Path
 
 from src.DatasetGenerator import generateDataset
-from src.load_dataset import load_data
+from src.load_dataset import preprocess_dataset
 
+training_rows_percentage = 80
 
 def init_config():
     root_path = pathlib.Path(__file__).parent.resolve()
@@ -27,23 +28,23 @@ def print_menu():
     print()
 
 
-# todo: SE SI CAMBIA LOGICA LOAD_DATA NON RESTITUENDO LISTA DI OGGETTI MA DATAFRAME O ALTRO BISOGNA CAMBIARE LA LOGICA
 def view_preprocessed_dataset(dataset_path):
-    preprocessed_dataset = load_data(dataset_path)
+    dataframe = preprocess_dataset(dataset_path, training_rows_percentage, True)
     output_path = Path(dataset_path).parent / "preprocessed_dataset.txt"
     with open(output_path, "w", encoding="utf-8") as file:
-        for row in preprocessed_dataset:
-            riga = f"{row['ID']} - {row['testo']} - {row['reparto']} - {row['polarita']}\n"
+        for index, row in dataframe.iterrows():
+            riga = f"{row['ID']} - {row['recensione_completa']} - {row['Reparto']} - {row['Sentiment']}\n"
             file.write(riga)
-    print("Dataset preprocessato salvato in " + str(output_path))
+        print(f"Salvataggio completato in: {output_path}")
 
 
 def train(dataset_path):
-    preprocessed_dataset = load_data(dataset_path)
+    dataframe = preprocess_dataset(dataset_path, training_rows_percentage, True)
 
 
 def main():
     dataset_path, dataset_bck_path = init_config()
+
     print("Benvenuto nel programma di machine learning PW20.")
     scelta = ""
     while True:

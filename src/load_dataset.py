@@ -1,14 +1,23 @@
+import pandas as pd
+import string
 
 
+def clean_text(text):
+    text = text.lower()
+    text = text.strip()
+    text = text.translate(str.maketrans('', '', string.punctuation))
+    return text
 
-def load_data(dataset_path):
 
-    # TODO:
-    # Apri file csv
-    # Crea un oggetto recensione con ID, testo pulito, reparto e polarità TODO: oppure dataframe?
-    # Inserisci ogni recensione all'interno di un array di recensioni
-    # Restituisci array
+def preprocess_dataset(dataset_path, rows_to_return_percentage, ascending):
 
-    test_list = []
+    df = pd.read_csv(dataset_path, sep=';')
+    df['recensione_completa'] = df['Titolo'] + " " + df['Corpo']
+    df['recensione_completa'] = df['recensione_completa'].apply(clean_text)
+    total_rows = len(df)
+    rows_to_return = total_rows * rows_to_return_percentage // 100
+    if ascending:
+        return df.head(rows_to_return)
+    else:
+        return df.tail(rows_to_return)
 
-    return test_list
