@@ -2,7 +2,7 @@ import pathlib
 from pathlib import Path
 
 from src.DatasetGenerator import generateDataset
-from src.load_dataset import preprocess_dataset
+from src.load_dataset import preprocess_dataset, tokenize_text
 
 training_rows_percentage = 80
 
@@ -29,7 +29,7 @@ def print_menu():
 
 
 def view_preprocessed_dataset(dataset_path):
-    dataframe = preprocess_dataset(dataset_path, training_rows_percentage, True)
+    dataframe = preprocess_dataset(dataset_path, 100, True)
     output_path = Path(dataset_path).parent / "preprocessed_dataset.txt"
     with open(output_path, "w", encoding="utf-8") as file:
         for index, row in dataframe.iterrows():
@@ -40,6 +40,8 @@ def view_preprocessed_dataset(dataset_path):
 
 def train(dataset_path):
     dataframe = preprocess_dataset(dataset_path, training_rows_percentage, True)
+    dataframe['recensione_completa'] = dataframe['recensione_completa'].apply(tokenize_text)
+    # TODO: Riportare i token in una stringa singola per poterli passare a TfidfVectorizer (o simili) per embedding
 
 
 def main():
