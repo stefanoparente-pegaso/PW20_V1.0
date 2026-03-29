@@ -27,6 +27,9 @@ sent_model_path = str(models_dir / "sentiment_model.pkl")
 vectorizer_path = str(models_dir / "vectorizer.pkl")
 training_rows_percentage = 80
 
+dep_matrix_labels = ['F&B', 'Housekeeping', 'Reception']
+sent_matrix_labels = ['Negativo', 'Positivo']
+
 def generate_dataset():
     generateDataset(dataset_path, dataset_bck_path)
 
@@ -64,16 +67,16 @@ def train():
 
 def check_results():
     if not os.path.exists(dep_model_path) or not os.path.exists(sent_model_path):
-        print("I modelli non sono ancora stati addestrati. Addestrare i modelli prima di lanciare questo comando.")
-        return # TODO: return None ??
+        print("I modelli non sono ancora stati addestrati. Verrà eseguito anche addestramento")
+        train()
     models = []
     dataframe_20 = preprocess_dataset(dataset_path, 100 - training_rows_percentage, False)
     vectorizer = joblib.load(vectorizer_path)
     rev_vector = vectorizer.transform(dataframe_20['recensione_completa'])
     model_dep = joblib.load(dep_model_path)
     model_sent = joblib.load(sent_model_path)
-    model_result_dep = evaluate_model('dep_model', model_dep, rev_vector, dataframe_20['Reparto'])
-    model_result_sent =  evaluate_model('sent_model', model_sent, rev_vector, dataframe_20['Sentiment'])
+    model_result_dep = evaluate_model('DEPARTMENT MODEL', model_dep, rev_vector, dataframe_20['Reparto'], dep_matrix_labels, dataframe_20['ID'])
+    model_result_sent = evaluate_model('SENTIMENT MODEL', model_sent, rev_vector, dataframe_20['Sentiment'], sent_matrix_labels, dataframe_20['ID'])
     models.append(model_result_dep)
     models.append(model_result_sent)
     show_results(models)

@@ -2,4 +2,6 @@
 venv/
 __pycache__/
 *.pyc
-trained_models
+trained_models/*
+static/evaluation_dashboard/report_generato.html
+data/prediction_errors/*
