@@ -9,6 +9,8 @@ from src.DatasetGenerator import generateDataset
 from src.dataset_utils import preprocess_dataset, tokenize_text, embed_dataset
 from src.train_models import train_model
 from src.evaluate import evaluate_model, show_results
+from src.interface_utils import launch_gradio
+
 
 # TODO: valutare di spostare funzioni train, show, results in un file dedicato per mantenere pulito il main con solo opzioni menu
 
@@ -27,6 +29,7 @@ sent_model_path = str(models_dir / "sentiment_model.pkl")
 vectorizer_path = str(models_dir / "vectorizer.pkl")
 training_rows_percentage = 80
 
+# In ordine alfabetico
 dep_matrix_labels = ['F&B', 'Housekeeping', 'Reception']
 sent_matrix_labels = ['Negativo', 'Positivo']
 
@@ -80,3 +83,14 @@ def check_results():
     models.append(model_result_dep)
     models.append(model_result_sent)
     show_results(models)
+
+def open_interface():
+    if not os.path.exists(dep_model_path) or not os.path.exists(sent_model_path):
+        print("I modelli non sono ancora stati addestrati. Verrà eseguito anche addestramento")
+        train()
+    vectorizer = joblib.load(vectorizer_path)
+    model_dep = joblib.load(dep_model_path)
+    model_sent = joblib.load(sent_model_path)
+    launch_gradio(vectorizer, model_dep, model_sent)
+
+    return ""

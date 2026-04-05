@@ -8,7 +8,7 @@ def print_menu():
     print("2. Visualizza il dataset corrente dopo l'operazione di preprocessing")
     print("3. Addestra i modelli di ML")
     print("4. Visualizza risultati dei modelli di ML sul dataset fornito")
-    print("5. Apri la dashboard interattiva")
+    print("5. Apri l'interfaccia' interattiva")
     print()
 
 def main():
@@ -24,6 +24,7 @@ def main():
             case "2": controller.view_preprocessed_dataset()
             case "3": controller.train()
             case "4": controller.check_results()
+            case "5": controller.open_interface()
         print()
         print("====================================================")
 
