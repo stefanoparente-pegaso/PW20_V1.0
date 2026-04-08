@@ -18,7 +18,44 @@ def launch_gradio(vectorizer, model_dep, model_sent):
 
     with gr.Blocks(title="Classificatore recensioni hotel") as demo:
         gr.Markdown("# Classificatore recensioni hotel")
-        gr.Markdown("Inserisci il titolo e il corpo della recensione:")
+
+        def import_csv(file, current_data):
+            if file is None:
+                return current_data
+
+            try:
+                df_imported = pd.read_csv(file.name, sep=';')
+
+                if "Titolo" in df_imported.columns and "Corpo" in df_imported.columns:
+                    df_to_process = df_imported[["Titolo", "Corpo"]].dropna()
+
+                    results = []
+                    for _, row in df_to_process.iterrows():
+                        dep, sent, score = predict(
+                            row["Titolo"],
+                            row["Corpo"],
+                            vectorizer, model_dep, model_sent
+                        )
+                        results.append({
+                            "Titolo": row["Titolo"],
+                            "Corpo": row["Corpo"],
+                            "Reparto": dep,
+                            "Sentiment": sent
+                        })
+
+                    # Creiamo il DataFrame con i risultati calcolati
+                    df_results = pd.DataFrame(results)
+
+                    # Uniamo alla tabella esistente
+                    updated_data = pd.concat([current_data, df_results], ignore_index=True)
+                    return updated_data
+                else:
+                    gr.Warning("Il file CSV deve contenere almeno le colonne 'Titolo' e 'Corpo'.")
+                    return current_data
+            except Exception as e:
+                gr.Error(f"Errore durante l'elaborazione del file: {str(e)}")
+                return current_data
+
 
         def analyze(titolo, corpo, rev_list):
             dep, sent, score = predict(titolo, corpo, vectorizer, model_dep, model_sent)
@@ -34,7 +71,6 @@ def launch_gradio(vectorizer, model_dep, model_sent):
             return dep, sent, score, updated_data
 
         def delete_selected(data, selected_index: gr.SelectData):
-            # selected_index.index[0] ci dice quale riga è stata cliccata
             row_idx = selected_index.index[0]
             updated_data = data.drop(index=row_idx).reset_index(drop=True)
             return updated_data
@@ -48,7 +84,14 @@ def launch_gradio(vectorizer, model_dep, model_sent):
             return file_path
 
         with gr.Row():
+
             with gr.Column():
+                gr.Markdown("#### Importa recensioni CSV")
+                file_upload = gr.File(label="Carica CSV con Titolo e Corpo", file_types=[".csv"])
+                btn_import = gr.Button("Analizza file caricato")
+
+            with gr.Column():
+                gr.Markdown("#### Inserisci il titolo e il corpo della recensione:")
                 txt_titolo = gr.Textbox(label="Titolo", placeholder="Inserisci qui il titolo")
                 txt_corpo = gr.Textbox(label="Testo", placeholder="Inserisci qui la recensione", lines=4)
                 btn_run = gr.Button("Analizza Recensione", variant="primary")
@@ -56,7 +99,6 @@ def launch_gradio(vectorizer, model_dep, model_sent):
             with gr.Column():
                 out_dep = gr.Label(label="Reparto Destinatario")
                 out_sent = gr.Label(label="Sentiment Rilevato")
-                # Usiamo un componente Label o Number per la probabilità richiesta dal PW
                 out_score = gr.Number(label="Confidenza Modello (0-1)")
 
         gr.Markdown("---")
@@ -89,6 +131,12 @@ def launch_gradio(vectorizer, model_dep, model_sent):
             fn=export_to_csv,
             inputs=[rev_table],
             outputs=[file_download]
+        )
+
+        btn_import.click(
+            fn=import_csv,
+            inputs=[file_upload, rev_table],
+            outputs=[rev_table]
         )
 
     demo.launch(inbrowser=True)
