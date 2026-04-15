@@ -18,7 +18,6 @@ def train_model(vector, column_df):
 
 
 # def train_model(vector, column_df):
-#     # Basta cambiare la classe del modello
 #     model = LinearSVC(
 #         random_state=42,
 #         max_iter=2000,

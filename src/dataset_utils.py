@@ -25,12 +25,9 @@ def embed_dataset(rev_tk_df, vectorizer):
 #
 #     tokens = []
 #     for token in doc:
-#         # Teniamo il "non" (fondamentale per il sentiment!)
-#         # e filtriamo stopword, punteggiatura e spazi
 #         if token.text.lower() == "non":
 #             tokens.append("non")
 #         elif not token.is_stop and not token.is_punct and not token.is_space:
-#             # Prendiamo il lemma (la radice della parola)
 #             tokens.append(token.lemma_.lower())
 #
 #     return tokens
@@ -48,11 +45,8 @@ def tokenize_text(rev_df):
 #
 #     text = text.lower().strip()
 #
-#     # Sostituiamo ogni carattere di punteggiatura con uno spazio
-#     # [^\w\s] significa: "qualsiasi cosa che non sia una lettera o uno spazio"
 #     text = re.sub(r'[^\w\s]', ' ', text)
 #
-#     # Riduciamo i doppi spazi che si creano in uno spazio singolo
 #     text = re.sub(r'\s+', ' ', text).strip()
 #
 #     return text
