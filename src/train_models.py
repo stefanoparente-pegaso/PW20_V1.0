@@ -1,21 +1,12 @@
+import joblib
+from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
-from sklearn.svm import LinearSVC
 
-#  LINEAR SVC
-
-# def train_model(vector, column_df):
-#     # LinearSVC è molto più performante su testi brevi e classi bilanciate
-#     model = LinearSVC(
-#         C=1.0,
-#         class_weight='balanced',
-#         random_state=42,
-#         max_iter=5000
-#     )
-#     return model.fit(vector, column_df)
+from src.dataset_utils import tokenize_text
 
 #  LOGISTIC REGRESSION
 
-def train_model(vector, column_df):
+def create_model(vector, column_df):
     lgr = LogisticRegression(
         random_state=42,
         max_iter=2000,
@@ -29,3 +20,38 @@ def train_model(vector, column_df):
     model = lgr.fit(vector, column_df)
     return model
 
+# LEGENDA:
+# random_state = seme casuale
+# max_iter = massimo n° iterazioni che algoritmo compie per imparare
+# c = regolarizzazione --> più è alto e più si da peso alle singole parole. 1 è una via di mezzo
+# solver = algoritmo utilizzato per ottimizzare i pesi
+# multi_class = sceglie tra logica 'one vs rest' o multinomial (default auto)
+
+
+
+def train_models(dataframe_80, pkl_paths):
+    tokens_dep = dataframe_80['recensione_completa'].apply(lambda x: tokenize_text(x, sentiment=False))
+    rev_strings_dep = tokens_dep.apply(lambda x: " ".join(x))
+    vectorizer_dep = TfidfVectorizer(ngram_range=(1, 2), min_df=2, max_df=0.9, sublinear_tf=True, use_idf=True)
+    rev_vector_dep = vectorizer_dep.fit_transform(rev_strings_dep)
+    model_dep = create_model(rev_vector_dep, dataframe_80['Reparto'])
+
+    tokens_sent = dataframe_80['recensione_completa'].apply(lambda x: tokenize_text(x, sentiment=True))
+    rev_strings_sent = tokens_sent.apply(lambda x: " ".join(x))
+    vectorizer_sent = TfidfVectorizer(ngram_range=(1, 2), min_df=2, max_df=0.7, sublinear_tf=True, use_idf=False)
+    rev_vector_sent = vectorizer_sent.fit_transform(rev_strings_sent)
+    model_sent = create_model(rev_vector_sent, dataframe_80['Sentiment'])
+
+    # Salvataggio vectorizer e modelli
+    joblib.dump(vectorizer_dep, pkl_paths['vectorizer_dep_path'])
+    joblib.dump(vectorizer_sent, pkl_paths['vectorizer_sent_path'])
+    joblib.dump(model_dep, pkl_paths['dep_model_path'])
+    joblib.dump(model_sent, pkl_paths['sent_model_path'])
+
+
+
+# LEGENDA:
+# ngram_range = dimensione sequenze parole da considerare
+# min_df = n° minima frequenza della parola nel dataset per essere incula nel dizionario
+# max_df = percentuale di frequenza oltre il quale le parole (stop-words) devo essere ignorate
+# sublinear_tf = trasformazione logaritmica conteggio, riduce importanza delle parole ripetute più volte nella stessa recensione

@@ -1,12 +1,21 @@
 import os
 import webbrowser
 
+import joblib
 from sklearn.metrics import accuracy_score, f1_score, confusion_matrix, classification_report
 from models.model_result import ModelResult
 from .dashboard_html_utils import get_html_model
 import pandas as pd
 
-def show_results(models_to_show):
+from .dataset_utils import tokenize_text
+
+# In ordine alfabetico
+dep_matrix_labels = ['F&B', 'Housekeeping', 'Reception']
+sent_matrix_labels = ['Negativo', 'Positivo']
+
+
+def show_results(models_to_show, errors_html):
+    # Path dashboard
     dashboard_dir = './static/evaluation_dashboard/'
     template_path = os.path.join(dashboard_dir, 'dashboard.html')
     output_path = os.path.join(dashboard_dir, 'report_generato.html')
@@ -26,6 +35,7 @@ def show_results(models_to_show):
             content = f.read()
 
         dashboard = content.replace('%%CARDS_PLACEHOLDER%%', html_to_replace)
+        dashboard = dashboard.replace('%%ERRORS_PLACEHOLDER%%', errors_html)
 
         with open(output_path, 'w', encoding='utf-8') as f:
             f.write(dashboard)
@@ -37,20 +47,44 @@ def show_results(models_to_show):
         for model in models_to_show:
             print(model.to_dict())
 
-def get_errors_csv(model_name, prediction, column_df, id_df):
+
+def get_errors_html(model_name, prediction, column_df, id_df, original_texts):
+    # Dataframe temporaneo
     results = pd.DataFrame({
         'ID': id_df,
+        'Testo': original_texts,
         'Reale': column_df,
         'Predetto': prediction
     })
 
+    # Filtro solo record in cui la predizione non corrisponde al reale
     errors = results[results['Reale'] != results['Predetto']]
-    target_dir = os.path.join('data', 'prediction_errors')
-    os.makedirs(target_dir, exist_ok=True)
-    filename = os.path.join(target_dir, f"errori_{model_name}.csv")
-    errors.to_csv(filename, index=False, sep=';', encoding='utf-8')
 
-# DEBUG
+    if errors.empty:
+        return f"<p class='no-errors'>Nessun errore rilevato per {model_name}.</p>"
+
+    html_table = f"<h3 class='error-title'>Analisi errori: {model_name}</h3>"
+    html_table += '<table class="error-table">'
+    html_table += '<thead><tr>'
+    html_table += '<th class="col-id">ID</th>'
+    html_table += '<th class="col-text">Testo recensione completo</th>'
+    html_table += '<th class="col-real">Reale</th>'
+    html_table += '<th class="col-pred">Predetto</th>'
+    html_table += '</tr></thead><tbody>'
+
+    for _, row in errors.head(10).iterrows(): # _ è indice
+        # Pulizia testo x visualizzazione
+        testo_show = str(row['Testo']).replace('\n', ' ').strip()
+
+        html_table += '<tr>'
+        html_table += f'<td class="col-id">{row["ID"]}</td>'
+        html_table += f'<td class="col-text">{testo_show}</td>'
+        html_table += f'<td class="col-real">{row["Reale"]}</td>'
+        html_table += f'<td class="col-pred">{row["Predetto"]}</td>'
+        html_table += '</tr>'
+
+    html_table += '</tbody></table>'
+    return html_table
 
 def evaluate_model(name, model, rev_vector, column_df, labels, id_df, original_texts):
     prediction = model.predict(rev_vector)
@@ -58,34 +92,39 @@ def evaluate_model(name, model, rev_vector, column_df, labels, id_df, original_t
     f1 = f1_score(column_df, prediction, average='macro')
     conf_matrix = confusion_matrix(column_df, prediction)
 
-    # --- DEBUG ERRORI SPECIFICI ---
-    print(f"\n--- ANALISI ERRORI TARGET: {name} ---")
-
-    # Creiamo un piccolo df temporaneo per l'analisi
-    df_debug = pd.DataFrame({
-        'Testo': original_texts,
-        'Reale': column_df.values,
-        'Predetto': prediction
-    })
-
-    # Filtro 1: Era Reception ma ha predetto altro
-    if name == 'DEPARTMENT MODEL':
-        errori_reception = df_debug[(df_debug['Reale'] == 'Reception') & (df_debug['Predetto'] != 'Reception')]
-        print(f"\nERRORE: Erano RECEPTION ma il modello ha detto altro ({len(errori_reception)} casi):")
-        for i, row in errori_reception.head(10).iterrows():  # Vediamo i primi 10
-            print(f"- SCRITTO: {row['Testo'][:80]}... | PREDETTO: {row['Predetto']}")
-
-    # Filtro 2: Era Negativo ma ha predetto Positivo
-    if name == 'SENTIMENT MODEL':
-        falsi_positivi = df_debug[(df_debug['Reale'] == 'Negativo') & (df_debug['Predetto'] == 'Positivo')]
-        print(f"\nERRORE: Erano NEGATIVI ma il modello ha detto POSITIVO ({len(falsi_positivi)} casi):")
-        for i, row in falsi_positivi.head(10).iterrows():
-            print(f"- SCRITTO: {row['Testo'][:80]}... | PREDETTO: {row['Predetto']}")
-
-    print("---------------------------------------\n")
-    # ------------------------------
-
     result = ModelResult(name, accuracy, f1, conf_matrix, labels)
-    get_errors_csv(name, prediction, column_df, id_df)
 
-    return result
+    errors_html = get_errors_html(name, prediction, column_df, id_df, original_texts)
+
+    return result, errors_html
+
+def open_results_dashboard(dataframe_20, pkl_paths):
+
+    models = []
+
+    tokens_dep = dataframe_20['recensione_completa'].apply(lambda x: tokenize_text(x, sentiment=False))
+    tokens_dep_str = tokens_dep.apply(lambda x: " ".join(x))
+    vectorizer_dep = joblib.load(pkl_paths['vectorizer_dep_path'])
+    rev_vector_dep = vectorizer_dep.transform(tokens_dep_str)
+
+    tokens_sent = dataframe_20['recensione_completa'].apply(lambda x: tokenize_text(x, sentiment=True))
+    tokens_sent_str = tokens_sent.apply(lambda x: " ".join(x))
+    vectorizer_sent = joblib.load(pkl_paths['vectorizer_sent_path'])
+    rev_vector_sent = vectorizer_sent.transform(tokens_sent_str)
+
+    # Caricamento modelli
+    model_dep = joblib.load(pkl_paths['dep_model_path'])
+    model_sent = joblib.load(pkl_paths['sent_model_path'])
+
+    # model_result_dep = evaluate_model('DEPARTMENT MODEL', model_dep, rev_vector_dep, dataframe_20['Reparto'], dep_matrix_labels, dataframe_20['ID'])
+    model_result_dep, err_dep_html = evaluate_model('DEPARTMENT MODEL', model_dep, rev_vector_dep, dataframe_20['Reparto'],
+                                      dep_matrix_labels, dataframe_20['ID'], dataframe_20['recensione_completa'])
+    # model_result_sent = evaluate_model('SENTIMENT MODEL', model_sent, rev_vector_sent, dataframe_20['Sentiment'], sent_matrix_labels, dataframe_20['ID'])
+    model_result_sent, err_sent_html = evaluate_model('SENTIMENT MODEL', model_sent, rev_vector_sent, dataframe_20['Sentiment'],
+                                       sent_matrix_labels, dataframe_20['ID'], dataframe_20['recensione_completa'])
+
+    errors_html = err_dep_html + "<br>" + err_sent_html
+
+    models.append(model_result_dep)
+    models.append(model_result_sent)
+    show_results(models, errors_html)
