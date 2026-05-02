@@ -2,7 +2,7 @@ import joblib
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
 
-from src.dataset_utils import tokenize_text
+from src.dataset_utils import tokenize_text, embed_dataset
 
 #  LOGISTIC REGRESSION
 
@@ -31,15 +31,13 @@ def create_model(vector, column_df):
 
 def train_models(dataframe_80, pkl_paths):
     tokens_dep = dataframe_80['recensione_completa'].apply(lambda x: tokenize_text(x, sentiment=False))
-    rev_strings_dep = tokens_dep.apply(lambda x: " ".join(x))
     vectorizer_dep = TfidfVectorizer(ngram_range=(1, 2), min_df=2, max_df=0.9, sublinear_tf=True, use_idf=True)
-    rev_vector_dep = vectorizer_dep.fit_transform(rev_strings_dep)
+    rev_vector_dep = embed_dataset(tokens_dep, vectorizer_dep)
     model_dep = create_model(rev_vector_dep, dataframe_80['Reparto'])
 
     tokens_sent = dataframe_80['recensione_completa'].apply(lambda x: tokenize_text(x, sentiment=True))
-    rev_strings_sent = tokens_sent.apply(lambda x: " ".join(x))
     vectorizer_sent = TfidfVectorizer(ngram_range=(1, 2), min_df=2, max_df=0.7, sublinear_tf=True, use_idf=False)
-    rev_vector_sent = vectorizer_sent.fit_transform(rev_strings_sent)
+    rev_vector_sent = embed_dataset(tokens_sent, vectorizer_sent)
     model_sent = create_model(rev_vector_sent, dataframe_80['Sentiment'])
 
     # Salvataggio vectorizer e modelli
