@@ -1,4 +1,4 @@
-def get_html_model(model) :
+def get_html_card_model(model) :
 
     html = f'''
     <div class="card">

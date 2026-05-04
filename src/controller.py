@@ -34,7 +34,8 @@ training_rows_percentage = 80
 
 
 def generate_dataset():
-    generateDataset(dataset_path, dataset_bck_path)
+    print("\nLa generazione di un nuovo dataset non è momentanemanete attiva per questo progetto.")
+    #generateDataset(dataset_path, dataset_bck_path)
 
 
 def view_preprocessed_dataset():
@@ -44,7 +45,7 @@ def view_preprocessed_dataset():
         for index, row in dataframe.iterrows():
             riga = f"{row['ID']} - {row['recensione_completa']} - {row['Reparto']} - {row['Sentiment']}\n"
             file.write(riga)
-        print(f"Salvataggio completato in: {output_path}")
+        print(f"\nSalvataggio completato in: {output_path}")
 
 
 def train():

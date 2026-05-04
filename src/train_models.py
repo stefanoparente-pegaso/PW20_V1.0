@@ -46,6 +46,8 @@ def train_models(dataframe_80, pkl_paths):
     joblib.dump(model_dep, pkl_paths['dep_model_path'])
     joblib.dump(model_sent, pkl_paths['sent_model_path'])
 
+    print("\nAddestramento dei modelli eseguito con successo")
+
 
 
 # LEGENDA:

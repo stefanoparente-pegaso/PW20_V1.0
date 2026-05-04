@@ -4,7 +4,7 @@ def print_menu():
     print()
     print("Le funzionalità disponibili sono le seguenti:")
     print("0. Esci dal programma")
-    print("1. Genera un nuovo dataset")
+    print("1. Genera un nuovo dataset (prototipo non attivo)")
     print("2. Visualizza il dataset corrente dopo l'operazione di preprocessing")
     print("3. Addestra i modelli di ML")
     print("4. Visualizza risultati dei modelli di ML sul dataset fornito")

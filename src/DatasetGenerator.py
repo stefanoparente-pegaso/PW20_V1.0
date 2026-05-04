@@ -38,7 +38,7 @@ def generateJsonReviewsByOpenAi():
     client = OpenAI(api_key=key)
 
     n = 400
-    prompt = PROMPT.format(n=n)
+    prompt = input("Descrivi le caratteristiche del dataset da generare: ")
 
     print("Generazione di {n} recensioni in corso...".format(n=n))
 

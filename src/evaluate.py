@@ -4,7 +4,7 @@ import webbrowser
 import joblib
 from sklearn.metrics import accuracy_score, f1_score, confusion_matrix, classification_report
 from models.model_result import ModelResult
-from .dashboard_html_utils import get_html_model
+from .dashboard_html_utils import get_html_card_model
 import pandas as pd
 
 from .dataset_utils import tokenize_text
@@ -25,7 +25,7 @@ def show_results(models_to_show, errors_html):
         html_to_replace_list = []
 
         for model in models_to_show:
-            results_html = get_html_model(model)
+            results_html = get_html_card_model(model)
             html_to_replace_list.append(results_html)
 
         html_to_replace = ' '.join(html_to_replace_list)
@@ -42,6 +42,7 @@ def show_results(models_to_show, errors_html):
             f.write(dashboard)
 
         webbrowser.open(f"file://{os.path.abspath(output_path)}") # Apertura dashboard browser predefinito
+        print("\nDashboard di valutazione aperta sul browser predefinito")
 
     except FileNotFoundError:
         print("Errore nel caricamento della dashboard, si mostrano i risultati a terminale:")
@@ -90,7 +91,7 @@ def get_errors_html(model_name, prediction, column_df, id_df, original_texts):
 def evaluate_model(name, model, rev_vector, column_df, labels, id_df, original_texts):
     prediction = model.predict(rev_vector)
     accuracy = accuracy_score(column_df, prediction)
-    f1 = f1_score(column_df, prediction, average='macro')
+    f1 = f1_score(column_df, prediction, average='macro') # ‘macro’ serve per calcolare il valore come media degli score F1 calcolati per ogni singola classe
     conf_matrix = confusion_matrix(column_df, prediction)
 
     result = ModelResult(name, accuracy, f1, conf_matrix, labels)

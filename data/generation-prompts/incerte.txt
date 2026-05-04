@@ -12,7 +12,7 @@ In questo caso generami solo recensioni dubbie o incerte. Ovvero recensioni con 
 A prescindere da ciò assegna comunque una polarità positiva o negativa in base a quella più evidente e come reparto indica quello più dominante.
 Generami 72 recensioni di questo tipo e poi generamene altre 8 completamente senza senso.
 Per esse indica di default "positivo" e reparto "reception".
-Fai in modo che tutte le recensioni siano diverse e che il titolo contenga meno di 10 parole e il corpo tra 40 e 80 parole (importate che siano almeno 40!).
+Fai in modo che tutte le recensioni siano diverse e che il titolo contenga meno di 10 parole e il corpo tra 40 e 60 parole (importate che siano almeno 40!).
 l separatore deve essere il punto e virgola (;) e inserisci pure punteggiatura nel corpo. L'ID deve partire dal n° 321 (incluso)
 
 
